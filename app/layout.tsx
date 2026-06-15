@@ -1,30 +1,32 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import type { Metadata } from 'next';
+import { GeistSans } from 'geist/font/sans';
 
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
+import './globals.css';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'})
+export const metadata: Metadata = {
+  title: {
+    default: 'GreenPath — AI Teaching & P5 OS',
+    template: '%s | GreenPath',
+  },
+  description:
+    'Platform AI Teaching & P5 Operating System untuk guru Kurikulum Merdeka. Rencanakan, ajarkan, nilai, dan kelola proyek P5 dalam satu alur kerja terintegrasi.',
+  keywords: ['AI Teaching', 'P5', 'Kurikulum Merdeka', 'GreenPath', 'Platform Guru'],
+};
 
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
-    >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+    <html lang="id" suppressHydrationWarning className={`${GeistSans.variable}`}>
+      <body suppressHydrationWarning className="font-sans antialiased bg-background text-foreground">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <TooltipProvider delayDuration={300}>
+            {children}
+            <Toaster richColors position="top-right" />
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

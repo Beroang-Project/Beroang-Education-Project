@@ -117,8 +117,8 @@ export default function DashboardPage() {
                     <Play className="h-3 w-3" />
                   </Button>
                 </div>
-                <h4 className="text-sm font-bold line-clamp-1">{h.topic}</h4>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{h.gradeLevel}</p>
+                <h4 className="text-sm font-bold line-clamp-1">{h.cp}</h4>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{h.grade}</p>
               </div>
             ))}
             {history.length === 0 && (

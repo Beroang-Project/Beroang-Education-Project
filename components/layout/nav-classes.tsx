@@ -93,12 +93,6 @@ export function NavClasses({
                         }
                       >
                         <Link href={href} className="py-2">
-                          <span
-                            className="h-2.5 w-2.5 rounded-full shrink-0 shadow-sm"
-                            style={{
-                              backgroundColor: getSubjectText(subject),
-                            }}
-                          />
                           <span className="truncate">{subject}</span>
                         </Link>
                       </SidebarMenuSubButton>

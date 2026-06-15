@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Home, Sparkles, Package, BarChart3, Leaf } from "lucide-react"
+import { Home, Package, BarChart3, BrainCircuit } from "lucide-react"
 
 import { NavMain } from "@/components/layout/nav-main"
 import { NavClasses } from "@/components/layout/nav-classes"
@@ -13,9 +13,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { useClassStore } from "@/store/classStore"
 
@@ -28,6 +25,7 @@ const data = {
   },
   navMain: [
     { title: "Beranda", url: "/dashboard", icon: Home },
+    { title: "Asisten AI", url: "/asisten-ai", icon: BrainCircuit, isAI: true },
     { title: "Ruang P5", url: "/p5/p1", icon: Package },
     { title: "Analitik", url: "/analytics", icon: BarChart3 },
   ],

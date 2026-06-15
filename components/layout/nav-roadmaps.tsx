@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Map, ChevronRight, Bookmark } from "lucide-react"
+import { Map, ChevronRight } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -68,12 +68,11 @@ export function NavRoadmaps() {
                       // We don't have a specific page for each roadmap yet, so we just link to planner
                       return (
                         <SidebarMenuSubItem key={h.id}>
-                          <SidebarMenuSubButton 
-                            asChild 
+<SidebarMenuSubButton
+                            asChild
                             className="hover:bg-transparent hover:text-primary"
                           >
                             <Link href={`/planner?id=${h.id}`}>
-                              <Bookmark className="h-3 w-3 mr-1 opacity-50" />
                               <span className="truncate">{h.subject}</span>
                             </Link>
                           </SidebarMenuSubButton>

@@ -382,7 +382,7 @@ export default function ClassPage() {
                         status === 'done' ? 'bg-[#1F7D47] text-white shadow-sm shadow-green-200' :
                         status === 'active' ? 'ring-2 ring-offset-2 text-white rounded-2xl' : 'bg-muted text-muted-foreground',
                       )}
-                      style={status === 'active' ? { backgroundColor: themeColor, ringColor: themeColor } : {}}
+                      style={status === 'active' ? { backgroundColor: themeColor, '--tw-ring-color': themeColor } as React.CSSProperties : {}}
                       >
                         {status === 'done' ? <Check className="w-4 h-4" /> : idx + 1}
                       </div>

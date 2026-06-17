@@ -3,12 +3,12 @@
 import { useState, useRef, CSSProperties } from 'react';
 import { useParams } from 'next/navigation';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, Users, Calendar, CheckCircle2, Circle, ChevronRight, MessageSquare, X, Edit, Trash2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Plus, Users, Calendar, CheckCircle2, Circle, ChevronRight, MessageSquare, X, Edit, Trash2, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -36,12 +36,14 @@ export default function P5WorkspacePage() {
   const projectId = params.projectId as string;
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { groups, updateGroupStatus, addFeedback, validateMilestone, addGroup } = useP5Store();
+  const { groups, updateGroupStatus, addFeedback, validateMilestone, addGroup, deleteGroup, updateGroup } = useP5Store();
   const { students } = useClassStore();
 
   const [selectedGroup, setSelectedGroup] = useState<P5Group | null>(null);
   const [feedback, setFeedback] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -92,7 +94,7 @@ export default function P5WorkspacePage() {
   };
 
   const handleDeleteGroup = (groupId: string) => {
-    // Mock delete logic
+    deleteGroup(groupId);
     toast.success('Kelompok berhasil dihapus');
     setSelectedGroup(null);
   };
@@ -218,109 +220,131 @@ export default function P5WorkspacePage() {
 
       {/* Group Detail Sheet */}
       <Sheet open={!!currentGroup} onOpenChange={open => !open && setSelectedGroup(null)}>
-        <SheetContent className="w-[420px] overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto p-0 flex flex-col border-l-border/50">
           {currentGroup && (
             <>
-              <SheetHeader className="mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <SheetTitle className="font-display">{currentGroup.name}</SheetTitle>
-                    <Badge className={cn('w-fit text-xs mt-1', COLUMNS.find(c => c.id === currentGroup.status)?.bgColor)}>
-                      {COLUMNS.find(c => c.id === currentGroup.status)?.label}
-                    </Badge>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="icon" className="h-8 w-8">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteGroup(currentGroup.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </SheetHeader>
+              {/* Header */}
+              <div className="p-6 bg-muted/20 border-b relative">
+                <Badge variant="outline" className="mb-3 bg-background">
+                  {COLUMNS.find(c => c.id === currentGroup.status)?.label}
+                </Badge>
+                <SheetHeader>
+                  <SheetTitle className="text-2xl font-display">{currentGroup.name}</SheetTitle>
+                  <SheetDescription className="text-base text-foreground/80">
+                    {currentGroup.memberIds.length} anggota · {currentGroup.milestones.filter(m => m.completed).length}/{currentGroup.milestones.length} milestone
+                  </SheetDescription>
+                </SheetHeader>
+              </div>
 
-              {/* Members */}
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Anggota Kelompok</p>
-                <div className="space-y-1.5">
-                  {currentGroup.memberIds.length > 0 ? currentGroup.memberIds.map(id => {
-                    const s = students.find(s => s.id === id);
-                    if (!s) return null;
-                    return (
-                      <div key={id} className="flex items-center gap-2">
-                        <div className={`h-7 w-7 rounded-full ${getAvatarColor(s.name)} flex items-center justify-center text-white text-[10px] font-bold`}>
-                          {getInitials(s.name)}
+              {/* Content */}
+              <div className="p-6 space-y-4 flex-1 bg-background">
+                
+                {/* Members Card */}
+                <Card className="border-border/60 shadow-sm">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-500" /> Anggota Kelompok
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="space-y-2">
+                      {currentGroup.memberIds.length > 0 ? currentGroup.memberIds.map(id => {
+                        const s = students.find(s => s.id === id);
+                        if (!s) return null;
+                        return (
+                          <div key={id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                            <div className={`h-8 w-8 rounded-full ${getAvatarColor(s.name)} flex items-center justify-center text-white text-xs font-bold`}>
+                              {getInitials(s.name)}
+                            </div>
+                            <span className="text-sm font-medium">{s.name}</span>
+                          </div>
+                        );
+                      }) : <p className="text-xs text-muted-foreground">Belum ada anggota</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Milestones Card */}
+                <Card className="border-border/60 shadow-sm">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-primary" /> Milestone
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="space-y-2">
+                      {currentGroup.milestones.map(m => (
+                        <div key={m.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center gap-2">
+                            {m.completed
+                              ? <CheckCircle2 className="h-4 w-4 text-[var(--gp-action)] shrink-0" />
+                              : <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />}
+                            <span className={cn('text-sm', m.completed && 'line-through text-muted-foreground')}>{m.title}</span>
+                          </div>
+                          {!m.completed && (
+                            <Button variant="ghost" size="sm" className="h-6 text-[10px] text-[var(--gp-action)]" onClick={() => { validateMilestone(currentGroup.id, m.id); toast.success('Milestone divalidasi!'); }}>
+                              Validasi
+                            </Button>
+                          )}
                         </div>
-                        <span className="text-sm">{s.name}</span>
-                      </div>
-                    );
-                  }) : <p className="text-xs text-muted-foreground">Belum ada anggota</p>}
-                </div>
-              </div>
-
-              <Separator className="my-4" />
-
-              {/* Milestones */}
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Milestone</p>
-                <div className="space-y-2">
-                  {currentGroup.milestones.map(m => (
-                    <div key={m.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {m.completed
-                          ? <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                          : <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />}
-                        <span className={cn('text-sm', m.completed && 'line-through text-muted-foreground')}>{m.title}</span>
-                      </div>
-                      {!m.completed && (
-                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary" onClick={() => { validateMilestone(currentGroup.id, m.id); toast.success('Milestone divalidasi!'); }}>
-                          Validasi
-                        </Button>
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </CardContent>
+                </Card>
 
-              <Separator className="my-4" />
-
-              {/* Logs */}
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Log Progres</p>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {[...currentGroup.logs].reverse().map(log => (
-                    <div key={log.id} className="flex gap-2.5 text-xs">
-                      <div className={cn('h-1.5 w-1.5 rounded-full mt-1.5 shrink-0',
-                        log.type === 'milestone' ? 'bg-primary' : log.type === 'feedback' ? 'bg-amber-400' : 'bg-blue-400'
-                      )} />
-                      <div>
-                        <p className="text-foreground">{log.description}</p>
-                        <p className="text-muted-foreground">{log.date}</p>
-                      </div>
+                {/* Logs Card */}
+                <Card className="border-border/60 shadow-sm">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-amber-500" /> Log Progres
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="space-y-3 max-h-48 overflow-y-auto">
+                      {[...currentGroup.logs].reverse().map(log => (
+                        <div key={log.id} className="flex gap-3 text-xs">
+                          <div className={cn('h-2 w-2 rounded-full mt-1.5 shrink-0',
+                            log.type === 'milestone' ? 'bg-[var(--gp-action)]' : log.type === 'feedback' ? 'bg-amber-400' : 'bg-blue-400'
+                          )} />
+                          <div>
+                            <p className="text-foreground">{log.description}</p>
+                            <p className="text-muted-foreground mt-0.5">{log.date}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </CardContent>
+                </Card>
+
+                {/* Feedback Card */}
+                <Card className="border-border/60 shadow-sm">
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-violet-500" /> Feedback Guru
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    {currentGroup.teacherFeedback && (
+                      <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 mb-3">{currentGroup.teacherFeedback}</p>
+                    )}
+                    <Textarea
+                      value={feedback}
+                      onChange={e => setFeedback(e.target.value)}
+                      placeholder="Tulis feedback untuk kelompok ini..."
+                      className="text-sm min-h-[80px] mb-2"
+                    />
+                    <Button size="sm" className="w-full bg-[var(--gp-action)] hover:bg-[var(--gp-action-hover)]" onClick={handleSendFeedback} disabled={!feedback.trim()}>
+                      Kirim Feedback
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
 
-              <Separator className="my-4" />
-
-              {/* Feedback */}
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                  <MessageSquare className="h-3.5 w-3.5" /> Feedback Guru
-                </p>
-                {currentGroup.teacherFeedback && (
-                  <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-2.5 mb-3">{currentGroup.teacherFeedback}</p>
-                )}
-                <Textarea
-                  value={feedback}
-                  onChange={e => setFeedback(e.target.value)}
-                  placeholder="Tulis feedback untuk kelompok ini..."
-                  className="text-sm min-h-[80px] mb-2"
-                />
-                <Button size="sm" className="w-full" onClick={handleSendFeedback} disabled={!feedback.trim()}>
-                  Kirim Feedback
+              {/* Footer */}
+              <div className="p-6 bg-muted/20 border-t flex justify-end gap-3 mt-auto">
+                <Button variant="outline" onClick={() => setSelectedGroup(null)}>Tutup</Button>
+                <Button className="bg-[var(--gp-action)] hover:bg-[var(--gp-action-hover)]">
+                  <Edit className="h-4 w-4 mr-1.5" /> Edit Detail
                 </Button>
               </div>
             </>

@@ -5,7 +5,7 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import { FileSpreadsheet, FileDown, TrendingUp, Users, Award, Layers } from 'lucide-react';
+import { FileSpreadsheet, FileDown, TrendingUp, Users, Award, Layers, Clock, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,8 @@ import { toast } from 'sonner';
 import { useAssessmentStore } from '@/store/assessmentStore';
 import { useClassStore } from '@/store/classStore';
 import { useP5Store } from '@/store/p5Store';
-import { calculateFinalGrade, getInitials, getAvatarColor, cn } from '@/lib/utils';
+import { usePlannerStore } from '@/store/plannerStore';
+import { calculateFinalGrade, getInitials, getAvatarColor, cn, isDeadlinePassed } from '@/lib/utils';
 import { useGSAP, animations } from '@/lib/gsap-config';
 
 const PIE_COLORS = ['#4ade80', '#60a5fa', '#f59e0b'];
@@ -35,10 +36,36 @@ export default function AnalyticsPage() {
   const ITEMS_PER_PAGE = 15;
 
   const { students, classWeights, classKKM } = useAssessmentStore();
-  const { classes } = useClassStore();
+  const { classes, assignments } = useClassStore();
   const { groups } = useP5Store();
+  const { history } = usePlannerStore();
+
+  const totalStudents = students.length;
+  const upcomingAssignments = assignments.filter(a => !isDeadlinePassed(a.deadline)).length;
+
+  const allGrades = classes.flatMap(cls => {
+    const clsStudents = students.filter(s => s.classId === cls.id);
+    const weights = classWeights[cls.id] || cls.gradeWeights;
+    const kkm = classKKM[cls.id] || cls.kkm;
+    return clsStudents.map(s => ({
+      grade: calculateFinalGrade(s, { ...cls, gradeWeights: weights, kkm }),
+      kkm,
+    }));
+  });
+  const avgGrade = allGrades.length > 0
+    ? Math.round(allGrades.reduce((sum, g) => sum + g.grade, 0) / allGrades.length)
+    : 0;
+  const tuntasCount = allGrades.filter(g => g.grade >= g.kkm).length;
+
+  const statCards = [
+    { label: 'Total Siswa', value: totalStudents, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10', change: '+2 minggu ini' },
+    { label: 'Rata-rata Nilai', value: avgGrade, icon: TrendingUp, color: 'text-primary', bg: 'bg-primary/10', change: `${tuntasCount} siswa tuntas` },
+    { label: 'Tugas Aktif', value: upcomingAssignments, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/10', change: 'Belum deadline' },
+    { label: 'Riwayat AI', value: history.length, icon: Sparkles, color: 'text-violet-400', bg: 'bg-violet-500/10', change: 'Sesi generate' },
+  ];
 
   useGSAP(() => {
+    animations.staggerFadeIn('.stat-card', 0.1);
     animations.staggerFadeIn('.chart-card', 0.1);
     animations.staggerFadeIn('.summary-row', 0.05);
   }, { scope: containerRef });
@@ -117,6 +144,24 @@ export default function AnalyticsPage() {
             <FileDown className="h-3.5 w-3.5" /> Export PDF
           </Button>
         </div>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-4 gap-4">
+        {statCards.map((stat) => (
+          <Card key={stat.label} className="stat-card gp-card group cursor-default">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`h-10 w-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
+              </div>
+              <p className={`text-3xl font-display font-bold ${stat.color} stat-num`} data-value={stat.value}>0</p>
+              <p className="text-sm font-medium text-foreground mt-0.5">{stat.label}</p>
+              <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Charts */}

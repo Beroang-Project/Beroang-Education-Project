@@ -61,11 +61,6 @@ export function NavMain({
                     asChild
                     tooltip={item.title}
                     isActive={active}
-                    className={
-                      active
-                        ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                        : "hover:bg-transparent hover:text-primary"
-                    }
                   >
                     <Link href={item.url}>
                       <item.icon />
@@ -76,13 +71,7 @@ export function NavMain({
                   {history.length > 0 && (
                     <>
                       <CollapsibleTrigger asChild>
-                        <SidebarMenuAction
-                          className={
-                            active
-                              ? "text-primary hover:bg-primary/20 hover:text-primary"
-                              : "hover:bg-accent hover:text-accent-foreground"
-                          }
-                        >
+                        <SidebarMenuAction>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -106,7 +95,7 @@ export function NavMain({
                             <SidebarMenuSubItem key={h.id}>
                               <SidebarMenuSubButton
                                 asChild
-                                className="hover:bg-transparent hover:text-primary"
+                                isActive={pathname === `/asisten-ai?chat=${h.id}`}
                               >
                                 <Link href={`/asisten-ai?chat=${h.id}`}>
                                   <span className="truncate">{h.title}</span>

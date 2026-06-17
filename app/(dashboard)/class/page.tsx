@@ -1,16 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Plus, FileText, Video, Link as LinkIcon,
-  BookOpen, ClipboardList, HelpCircle, MoreVertical, Eye,
-  Trash2, Clock, AlertCircle, Pencil, CheckCircle, FolderPlus,
+  Plus,
+  BookOpen, ClipboardList, HelpCircle,
+  Trash2, Pencil, CheckCircle, FolderPlus,
   History, LayoutGrid, List as ListIcon, ChevronRight, Search,
-  Sparkles, ArrowRight, Layers, GraduationCap, TrendingUp,
+  Layers,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -66,7 +64,6 @@ export default function ClassIndexPage() {
   useGSAP(() => {
     animations.staggerFadeIn('.folder-card', 0.06);
     animations.fadeInUp('.recent-section', 0);
-    animations.fadeInUp('.stats-card', 0.1);
   }, { scope: containerRef });
 
   const subjectGroups = groupBySubject(classes);
@@ -125,11 +122,6 @@ export default function ClassIndexPage() {
     }
   };
 
-  // Stats
-  const totalMaterials = mounted ? classes.reduce((acc, cls) => acc + getMaterialsByClass(cls.id).length, 0) : 0;
-  const totalAssignments = mounted ? classes.reduce((acc, cls) => acc + getAssignmentsByClass(cls.id).length, 0) : 0;
-  const totalSubjects = subjectEntries.length;
-
   // Filtered subjects
   const filteredEntries = subjectEntries.filter(([subject]) =>
     !search || subject.toLowerCase().includes(search.toLowerCase())
@@ -137,46 +129,6 @@ export default function ClassIndexPage() {
 
   return (
     <div ref={containerRef} className="pb-12 space-y-8">
-
-      {/* ── HERO HEADER ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a3a2a] via-[#1e4530] to-[#0f2518] p-8 shadow-xl">
-        {/* Decorative bg elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.06]"
-          style={{ background: 'radial-gradient(circle, #4ade80, transparent)', transform: 'translate(30%, -30%)' }} />
-        <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, #86efac, transparent)', transform: 'translate(-30%, 30%)' }} />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3.5 py-1.5 mb-4">
-              <GraduationCap className="h-3.5 w-3.5 text-[#86efac]" />
-              <span className="text-xs font-semibold text-[#86efac] tracking-wide">RUANG BELAJAR</span>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight mb-2">
-              Smart Learning Space
-            </h1>
-            <p className="text-sm text-white/60 max-w-md">
-              Kelola materi, tugas, dan kuis per mata pelajaran dalam satu tempat yang terorganisir.
-            </p>
-          </div>
-
-          {/* Stats row */}
-          <div className="flex gap-3 shrink-0">
-            <div className="stats-card bg-white/10 backdrop-blur-sm rounded-xl p-4 w-28 text-center border border-white/10">
-              <div className="text-2xl font-bold text-white mb-0.5">{totalSubjects}</div>
-              <div className="text-[10px] text-white/60 font-medium uppercase tracking-wider">Mapel</div>
-            </div>
-            <div className="stats-card bg-white/10 backdrop-blur-sm rounded-xl p-4 w-28 text-center border border-white/10">
-              <div className="text-2xl font-bold text-white mb-0.5">{totalMaterials}</div>
-              <div className="text-[10px] text-white/60 font-medium uppercase tracking-wider">Materi</div>
-            </div>
-            <div className="stats-card bg-white/10 backdrop-blur-sm rounded-xl p-4 w-28 text-center border border-white/10">
-              <div className="text-2xl font-bold text-white mb-0.5">{totalAssignments}</div>
-              <div className="text-[10px] text-white/60 font-medium uppercase tracking-wider">Tugas</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* ── Terkini (Recent) ── */}
       {recentItems.length > 0 && (
@@ -233,7 +185,7 @@ export default function ClassIndexPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Cari mata pelajaran..."
-                className="h-9 w-48 pl-8 pr-3 rounded-lg border border-border bg-card text-[13px] text-foreground placeholder:text-muted-foreground outline-none focus:border-[#4DB87A] transition-colors"
+                className="h-9 w-48 pl-8 pr-3 rounded-lg border border-border bg-card text-[13px] text-foreground placeholder:text-muted-foreground outline-none focus:border-[var(--gp-border-focus)] transition-colors"
               />
             </div>
 
@@ -265,7 +217,7 @@ export default function ClassIndexPage() {
             <Button
               size="sm"
               onClick={() => setNewFolderOpen(true)}
-              className="bg-[#1F7D47] hover:bg-[#145C32] text-white shrink-0 h-9"
+              className="bg-[var(--gp-action)] hover:bg-[var(--gp-action-hover)] text-white shrink-0 h-9"
             >
               <FolderPlus className="h-3.5 w-3.5 mr-1.5" />
               Folder Baru
@@ -329,7 +281,7 @@ export default function ClassIndexPage() {
                 <div
                   key={subject}
                   onClick={() => handleFolderOpen(subject)}
-                  className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl cursor-pointer hover:border-[#4DB87A] hover:shadow-sm hover:-translate-y-0.5 transition-all group"
+                  className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl cursor-pointer hover:border-[var(--gp-border-focus)] hover:shadow-sm hover:-translate-y-0.5 transition-all group"
                 >
                   {/* Color dot / icon */}
                   <div
@@ -505,7 +457,7 @@ export default function ClassIndexPage() {
             <div className="flex gap-2 pt-1">
               <Button variant="outline" className="flex-1" onClick={() => setNewFolderOpen(false)}>Batal</Button>
               <Button
-                className="flex-1 bg-[#1F7D47] hover:bg-[#145C32]"
+                className="flex-1 bg-[var(--gp-action)] hover:bg-[var(--gp-action-hover)]"
                 onClick={handleCreateFolder}
                 disabled={!newSubjectName.trim()}
               >

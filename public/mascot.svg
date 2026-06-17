@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 400" fill="none">
+  <!-- Body -->
+  <ellipse cx="220" cy="280" rx="160" ry="120" fill="#9B7550"/>
+  
+  <!-- Left Ear -->
+  <circle cx="100" cy="140" r="50" fill="#9B7550"/>
+  <circle cx="100" cy="140" r="32" fill="#8B6540"/>
+  
+  <!-- Right Ear -->
+  <circle cx="340" cy="140" r="50" fill="#9B7550"/>
+  <circle cx="340" cy="140" r="32" fill="#8B6540"/>
+  
+  <!-- Face -->
+  <ellipse cx="220" cy="220" rx="120" ry="110" fill="#A88060"/>
+  
+  <!-- Snout -->
+  <ellipse cx="220" cy="260" rx="60" ry="45" fill="#7A5C40"/>
+  
+  <!-- Nose -->
+  <ellipse cx="220" cy="245" rx="22" ry="15" fill="#3D2E22"/>
+  
+  <!-- Mouth -->
+  <path d="M200 270 Q220 290 240 270" stroke="#3D2E22" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Left Eye (open) -->
+  <circle cx="170" cy="210" r="12" fill="#3D2E22"/>
+  <circle cx="173" cy="207" r="4" fill="#fff"/>
+  
+  <!-- Right Eye (winking) -->
+  <path d="M260 205 Q275 218 290 205" stroke="#3D2E22" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Graduation Cap Base -->
+  <rect x="120" y="85" width="200" height="18" rx="4" fill="#1B3A4B"/>
+  
+  <!-- Graduation Cap Top -->
+  <polygon points="220,40 100,90 340,90" fill="#1B3A4B"/>
+  <polygon points="220,40 110,87 220,75 330,87" fill="#234B5E"/>
+  
+  <!-- Tassel -->
+  <line x1="320" y1="90" x2="350" y2="130" stroke="#D4A843" stroke-width="4"/>
+  <circle cx="352" cy="135" r="8" fill="#D4A843"/>
+  
+  <!-- Right Arm (waving) -->
+  <ellipse cx="370" cy="250" rx="50" ry="40" fill="#9B7550" transform="rotate(-25 370 250)"/>
+  
+  <!-- Paw -->
+  <ellipse cx="400" cy="220" rx="35" ry="30" fill="#7A5C40"/>
+  <circle cx="385" cy="200" r="9" fill="#5A4535"/>
+  <circle cx="400" cy="195" r="9" fill="#5A4535"/>
+  <circle cx="415" cy="200" r="9" fill="#5A4535"/>
+  <circle cx="400" cy="215" r="11" fill="#5A4535"/>
+</svg>

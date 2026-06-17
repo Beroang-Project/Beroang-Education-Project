@@ -56,11 +56,6 @@ export function NavClasses({
               asChild
               tooltip="Smart Learning Space"
               isActive={isActiveSLS}
-              className={
-                isActiveSLS
-                  ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                  : "hover:bg-transparent hover:text-primary"
-              }
             >
               <Link href="/class">
                 <BookOpen />
@@ -68,7 +63,7 @@ export function NavClasses({
               </Link>
             </SidebarMenuButton>
             <CollapsibleTrigger asChild>
-              <SidebarMenuAction className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 hover:bg-black/5">
+              <SidebarMenuAction className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90">
                 <ChevronRight className="h-4 w-4" />
               </SidebarMenuAction>
             </CollapsibleTrigger>
@@ -86,11 +81,6 @@ export function NavClasses({
                       <SidebarMenuSubButton
                         asChild
                         isActive={isActive}
-                        className={
-                          isActive
-                            ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                            : "hover:bg-transparent hover:text-primary"
-                        }
                       >
                         <Link href={href} className="py-2">
                           <span className="truncate">{subject}</span>

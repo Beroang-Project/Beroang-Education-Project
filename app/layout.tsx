@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={300}>
             {children}
-            <Toaster richColors position="top-right" />
+            <Toaster richColors position="bottom-right" />
           </TooltipProvider>
         </ThemeProvider>
       </body>

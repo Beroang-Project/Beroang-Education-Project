@@ -1,50 +1,104 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Bell, Moon, Sun, Search, Command } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Bell, PanelLeftClose, PanelLeft, Home, BrainCircuit, Map, BookOpen, Package, BarChart3, Settings, Plus, Sparkles, FileText, MessageSquare, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from '@/components/ui/command';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { ModeToggle } from '@/components/mode-toggle';
+import { useGSAP, gsap } from '@/lib/gsap-config';
+import { useAssessmentStore } from '@/store/assessmentStore';
+import { useClassStore } from '@/store/classStore';
+import { useP5Store } from '@/store/p5Store';
+import { calculateFinalGrade, cn } from '@/lib/utils';
+
 const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/planner': 'AI Teaching Planner',
-  '/analytics': 'Analytics',
-  '/settings': 'Settings',
+  '/dashboard': 'Beranda',
+  '/planner': 'Roadmap',
+  '/analytics': 'Analitik',
+  '/settings': 'Pengaturan',
+  '/asisten-ai': 'Asisten AI',
+  '/assessment': 'Assessment',
 };
 
 function getPageTitle(pathname: string): string {
   if (pageTitles[pathname]) return pageTitles[pathname];
   if (pathname.startsWith('/class/')) return 'Smart Learning Space';
-  if (pathname.startsWith('/assessment/')) return 'Assessment Engine';
-  if (pathname.startsWith('/p5/')) return 'P5 Project Workspace';
+  if (pathname.startsWith('/assessment/')) return 'Assessment';
+  if (pathname.startsWith('/p5/')) return 'Ruang P5';
   return 'GreenPath';
 }
 
-export function AppHeader() {
+interface AppHeaderProps {
+  openSearch: boolean;
+  setOpenSearch: (open: boolean) => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
+}
+
+export function AppHeader({ openSearch, setOpenSearch, sidebarCollapsed, onToggleSidebar }: AppHeaderProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  const [openSearch, setOpenSearch] = useState(false);
   const router = useRouter();
+  const headerRef = useRef<HTMLElement>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const { students, classWeights, classKKM } = useAssessmentStore();
+  const { classes } = useClassStore();
+  const { groups } = useP5Store();
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 1) return [];
+    const query = searchQuery.toLowerCase();
+    return students
+      .filter(s => s.name.toLowerCase().startsWith(query))
+      .slice(0, 5)
+      .map(student => {
+        const cls = classes.find(c => c.id === student.classId);
+        if (!cls) return null;
+        const weights = classWeights[student.classId] || cls.gradeWeights;
+        const kkm = classKKM[student.classId] || cls.kkm;
+        const finalGrade = calculateFinalGrade(student, { ...cls, gradeWeights: weights, kkm });
+        const p5Group = groups.find(g => g.id === student.p5GroupId);
+        const teammates = p5Group
+          ? p5Group.memberIds
+              .filter(id => id !== student.id)
+              .map(id => students.find(s => s.id === id)?.name)
+              .filter(Boolean)
+          : [];
+        return {
+          ...student,
+          className: cls.name || cls.subject || '-',
+          subject: cls.subject || '-',
+          finalGrade,
+          kkm,
+          p5Group: p5Group?.name || null,
+          p5Status: p5Group?.status || null,
+          teammates,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  }, [searchQuery, students, classes, classWeights, classKKM, groups]);
+
+  useGSAP(() => {
+    gsap.from(headerRef.current, { y: -10, opacity: 0, duration: 0.5, ease: 'power2.out' });
+  }, { scope: headerRef });
 
   // Keyboard shortcut to open search
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key === 'k' && e.ctrlKey) {
         e.preventDefault();
-        setOpenSearch((open) => !open);
+        setOpenSearch(!openSearch);
       }
     };
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [openSearch, setOpenSearch]);
 
   const runCommand = (command: () => void) => {
     setOpenSearch(false);
@@ -54,9 +108,23 @@ export function AppHeader() {
   const title = getPageTitle(pathname);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-md px-4 sm:px-6">
+    <header ref={headerRef} className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-md px-4 sm:px-6">
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
+        {onToggleSidebar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onToggleSidebar}
+            title={sidebarCollapsed ? 'Tampilkan Sidebar' : 'Sembunyikan Sidebar'}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeft className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </Button>
+        )}
         <Separator orientation="vertical" className="mr-2 h-4 hidden md:block" />
       </div>
 
@@ -65,28 +133,106 @@ export function AppHeader() {
         <h1 className="font-display font-bold text-lg text-foreground leading-none">{title}</h1>
       </div>
 
-      {/* Search trigger */}
-      <button
-        className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-muted-foreground text-xs hover:border-primary/40 hover:bg-muted transition-all cursor-pointer"
-        onClick={() => setOpenSearch(true)}
-      >
-        <Search className="h-3.5 w-3.5" />
-        <span>Cari halaman...</span>
-        <kbd className="ml-2 px-1.5 py-0.5 rounded bg-background border border-border text-[10px] flex items-center gap-0.5">
-          <Command className="h-2.5 w-2.5" />K
-        </kbd>
-      </button>
-
-      <CommandDialog open={openSearch} onOpenChange={setOpenSearch}>
-        <CommandInput placeholder="Ketik perintah atau cari..." />
+      <CommandDialog open={openSearch} onOpenChange={(open) => { setOpenSearch(open); if (!open) setSearchQuery(''); }}>
+        <CommandInput placeholder="Cari siswa, halaman, atau perintah..." value={searchQuery} onValueChange={setSearchQuery} />
         <CommandList>
           <CommandEmpty>Tidak ada hasil yang ditemukan.</CommandEmpty>
-          <CommandGroup heading="Saran">
-            <CommandItem onSelect={() => runCommand(() => router.push('/dashboard'))}>Beranda</CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push('/planner'))}>AI Teaching Planner</CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push('/p5/p1'))}>P5 Workspace</CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push('/analytics'))}>Analytics</CommandItem>
-          </CommandGroup>
+
+          {searchResults.length > 0 && (
+            <CommandGroup heading="Siswa">
+              {searchResults.map((student) => (
+                <CommandItem
+                  key={student.id}
+                  onSelect={() => runCommand(() => router.push(`/assessment/${student.classId}`))}
+                  className="flex flex-col items-start gap-1 py-3"
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <User className="h-4 w-4 shrink-0" />
+                    <span className="font-semibold">{student.name}</span>
+                    <span className="text-[11px] text-muted-foreground ml-auto">{student.className}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground pl-6 w-full">
+                    <span className={cn(
+                      "font-semibold",
+                      student.finalGrade >= student.kkm ? "text-primary" : "text-destructive"
+                    )}>
+                      Nilai: {student.finalGrade}
+                    </span>
+                    {student.p5Group && (
+                      <span>P5: {student.p5Group}</span>
+                    )}
+                    {student.teammates.length > 0 && (
+                      <span>Tim: {student.teammates.join(', ')}</span>
+                    )}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {searchQuery.length < 1 && (
+            <>
+              <CommandGroup heading="Navigasi">
+                <CommandItem onSelect={() => runCommand(() => router.push('/dashboard'))}>
+                  <Home className="h-4 w-4" />
+                  <span>Beranda</span>
+                  <CommandShortcut>⌘H</CommandShortcut>
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => router.push('/asisten-ai'))}>
+                  <BrainCircuit className="h-4 w-4" />
+                  <span>Asisten AI</span>
+                  <CommandShortcut>⌘A</CommandShortcut>
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => router.push('/planner'))}>
+                  <Map className="h-4 w-4" />
+                  <span>AI Teaching Planner</span>
+                  <CommandShortcut>⌘P</CommandShortcut>
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => router.push('/class'))}>
+                  <BookOpen className="h-4 w-4" />
+                  <span>Smart Learning Space</span>
+                  <CommandShortcut>⌘L</CommandShortcut>
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => router.push('/p5/p1'))}>
+                  <Package className="h-4 w-4" />
+                  <span>Ruang P5</span>
+                  <CommandShortcut>⌘5</CommandShortcut>
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => router.push('/analytics'))}>
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Analitik</span>
+                  <CommandShortcut>⌘D</CommandShortcut>
+                </CommandItem>
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup heading="Aksi Cepat">
+                <CommandItem onSelect={() => runCommand(() => router.push('/planner'))}>
+                  <Sparkles className="h-4 w-4" />
+                  <span>Buat Roadmap Baru</span>
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => router.push('/class'))}>
+                  <Plus className="h-4 w-4" />
+                  <span>Buat Folder Kelas Baru</span>
+                </CommandItem>
+                <CommandItem onSelect={() => runCommand(() => router.push('/asisten-ai'))}>
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Percakapan AI Baru</span>
+                </CommandItem>
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup heading="Pengaturan">
+                <CommandItem onSelect={() => runCommand(() => router.push('/settings'))}>
+                  <Settings className="h-4 w-4" />
+                  <span>Pengaturan</span>
+                  <CommandShortcut>⌘S</CommandShortcut>
+                </CommandItem>
+              </CommandGroup>
+            </>
+          )}
         </CommandList>
       </CommandDialog>
 
@@ -117,21 +263,7 @@ export function AppHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              aria-label="Toggle theme"
-            >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Toggle tema</TooltipContent>
-        </Tooltip>
+        <ModeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

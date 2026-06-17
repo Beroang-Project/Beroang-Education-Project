@@ -122,6 +122,7 @@ export interface PlannerFormValues {
   p5Theme: string;
   durationWeeks: number;
   enableP5Integration: boolean;
+  enableQuiz: boolean;
 }
 
 export type KanbanStatus = P5Group['status'];

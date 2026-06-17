@@ -45,13 +45,13 @@ export { gsap, useGSAP, ScrollTrigger, SplitText, Flip, Observer, ScrambleTextPl
 // Animation presets
 export const animations = {
   fadeInUp: (target: gsap.TweenTarget, delay = 0) =>
-    gsap.from(target, { y: 40, opacity: 0, duration: 0.7, delay, ease: 'greenIn' }),
+    gsap.fromTo(target, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, delay, ease: 'greenIn', clearProps: 'all' }),
 
   staggerFadeIn: (targets: gsap.TweenTarget, staggerTime = 0.1) =>
-    gsap.from(targets, { y: 30, opacity: 0, duration: 0.6, stagger: staggerTime, ease: 'greenIn' }),
+    gsap.fromTo(targets, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: staggerTime, ease: 'greenIn', clearProps: 'all' }),
 
   scaleIn: (target: gsap.TweenTarget, delay = 0) =>
-    gsap.from(target, { scale: 0.8, opacity: 0, duration: 0.5, delay, ease: 'back.out(1.7)' }),
+    gsap.fromTo(target, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, delay, ease: 'back.out(1.7)', clearProps: 'all' }),
 
   glowPulse: (target: gsap.TweenTarget) =>
     gsap.to(target, {

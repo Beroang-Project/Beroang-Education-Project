@@ -8,6 +8,7 @@ interface P5State {
   groups: P5Group[];
 
   addGroup: (group: Omit<P5Group, 'id' | 'logs' | 'teacherFeedback'>) => void;
+  updateGroup: (groupId: string, updates: Partial<P5Group>) => void;
   updateGroupStatus: (groupId: string, status: P5Group['status']) => void;
   addFeedback: (groupId: string, feedback: string) => void;
   validateMilestone: (groupId: string, milestoneId: string) => void;
@@ -34,6 +35,11 @@ export const useP5Store = create<P5State>()(
               teacherFeedback: '',
             },
           ],
+        })),
+
+      updateGroup: (groupId, updates) =>
+        set((state) => ({
+          groups: state.groups.map((g) => (g.id === groupId ? { ...g, ...updates } : g)),
         })),
 
       updateGroupStatus: (groupId, status) =>

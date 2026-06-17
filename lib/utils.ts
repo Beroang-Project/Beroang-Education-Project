@@ -87,3 +87,58 @@ export function getAvatarColor(name: string): string {
   const index = name.charCodeAt(0) % colors.length;
   return colors[index];
 }
+
+export interface RoadmapCheckpoint {
+  week: number;
+  topic: string;
+  activity: string;
+  p5Integration: string;
+  date: Date;
+}
+
+export function parseAlurPembelajaran(alurPembelajaran: string, createdAt: string): RoadmapCheckpoint[] {
+  const checkpoints: RoadmapCheckpoint[] = [];
+  const lines = alurPembelajaran.split('\n');
+  const startDate = new Date(createdAt);
+
+  for (const line of lines) {
+    const match = line.match(/\|\s*(\d+)\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)\|/);
+    if (match) {
+      const week = parseInt(match[1]);
+      const topic = match[2].trim();
+      const activity = match[3].trim();
+      const p5Integration = match[4].trim();
+
+      // Calculate date for this week (each week = 5 working days)
+      const weekDate = new Date(startDate);
+      weekDate.setDate(startDate.getDate() + (week - 1) * 7);
+
+      checkpoints.push({
+        week,
+        topic,
+        activity,
+        p5Integration,
+        date: weekDate,
+      });
+    }
+  }
+
+  return checkpoints;
+}
+
+export function getTodayCheckpoints(
+  checkpoints: RoadmapCheckpoint[],
+  viewDays: 1 | 3 | 5
+): RoadmapCheckpoint[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(today);
+  endDate.setDate(today.getDate() + viewDays - 1);
+
+  return checkpoints.filter(cp => {
+    const cpDate = new Date(cp.date);
+    cpDate.setHours(0, 0, 0, 0);
+    return cpDate >= today && cpDate <= endDate;
+  });
+}
